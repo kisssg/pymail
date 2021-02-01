@@ -1,7 +1,7 @@
-#  update at 2020-12-10 9:59 by sucre
+#  update at 2021-01-19 17:21 by sucre
 #  show sending progress bar, update at 2020-12-15 14:40 by sucre
-
-import datetime
+import time
+print("开始读取文件...",time.strftime("%Y-%m-%d %H:%M:%S"))
 import smtplib
 import xlrd
 import os
@@ -21,24 +21,25 @@ load_dotenv(dotenv_path)
 me = os.getenv("from", "yourname@yourserver.com")
 #you = ["xxx@homecreditcfc.cn"]
 try:
-    print("开始读取文件...",datetime.datetime.now())
-    book = xlrd.open_workbook('template.xlsx')
+    book = xlrd.open_workbook(dirname(__file__)+'/template.xlsx')
     sheet = book.sheet_by_name('Sheet1')
     data = [[sheet.cell_value(r, c) for c in range(sheet.ncols)]
             for r in range(sheet.nrows)]
     data = pd.DataFrame(data, None, data[0])
     book.__exit__
-    print("文件读取完成！")
+    print("文件读取完成！",time.strftime("%Y-%m-%d %H:%M:%S"))
 except FileNotFoundError:
     print("未找到文件")
+    os._exit(0)
 except:
     print("读取Excel数据出错")
+    os._exit(0)
     
 result = {}
 
 try:    
-    print("开始发送邮件",datetime.datetime.now())
-    bar=Bar('正在发送邮件...',max=len(data)-1)
+    print("开始发送邮件...",time.strftime("%Y-%m-%d %H:%M:%S"))
+    bar=Bar('发送进度：',max=len(data)-1)
     for i in range(1, len(data)):
         # print(['name','email','msg1','msg2'])
         you = data['接收人邮箱'][i].split(',')
@@ -109,10 +110,10 @@ try:
         bar.next()
     bar.finish()
     if(result == {}):
-        print("邮件发送完成！",datetime.datetime.now())
+        print("邮件发送完成！ ",time.strftime("%Y-%m-%d %H:%M:%S"))
     else:
         for r in result:
             print(r)    
     s.quit()
 except:
-    print("邮件发送错误，请检查配置",datetime.datetime.now())
+    print("邮件发送错误，请检查配置",time.strftime("%Y-%m-%d %H:%M:%S"))
