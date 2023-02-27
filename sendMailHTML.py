@@ -1,7 +1,7 @@
 #  update at 2021-01-19 17:21 by sucre
 #  show sending progress bar, update at 2020-12-15 14:40 by sucre
 import time
-print("开始读取文件...",time.strftime("%Y-%m-%d %H:%M:%S"))
+print("Reading data from template...",time.strftime("%Y-%m-%d %H:%M:%S"))
 import smtplib
 import xlrd
 import os
@@ -27,29 +27,29 @@ try:
             for r in range(sheet.nrows)]
     data = pd.DataFrame(data, None, data[0])
     book.__exit__
-    print("文件读取完成！",time.strftime("%Y-%m-%d %H:%M:%S"))
+    print("File read completed.",time.strftime("%Y-%m-%d %H:%M:%S"))
 except FileNotFoundError:
-    print("未找到文件")
+    print("Template file not found.")
     os._exit(0)
 except:
-    print("读取Excel数据出错")
+    print("Error reading template file.")
     os._exit(0)
     
 result = {}
 
 try:    
-    print("开始发送邮件...",time.strftime("%Y-%m-%d %H:%M:%S"))
-    bar=Bar('发送进度：',max=len(data)-1)
+    print("Sending emails...",time.strftime("%Y-%m-%d %H:%M:%S"))
+    bar=Bar('Process：',max=len(data)-1)
     for i in range(1, len(data)):
         # print(['name','email','msg1','msg2'])
-        you = data['接收人邮箱'][i].split(',')
+        you = data['mail_to'][i].split(',')
 
         # Create message container - the correct MIME type is multipart/alternative.
         COMMASPACE = ', '
         msg = MIMEMultipart('alternative')
-        # 这里是输入邮件标题
-        msg['Subject'] = "音视频核查结果通知{}-{}".format(
-            data['合同号码'][i], xlrd.xldate.xldate_as_datetime(data['外访日期'][i], 0).date())
+        # Subject of email
+        msg['Subject'] = "Notification {}-{}".format(
+            data['contract'][i], xlrd.xldate.xldate_as_datetime(data['date'][i], 0).date())
         msg['From'] = me
         msg['To'] = COMMASPACE.join(you)
         # msg['Cc'] = me
@@ -63,28 +63,10 @@ try:
         <body>
         Dear {0},<br/>
         <br/>
-        通过对您外访音视频的核查，我们发现了一些需您改进的行为，详情请见下表：<br/><br/>
-        <table cellpadding="5" cellspacing="0" border="1"> 
-        <tr><td>员工工号</td><td>{1}</td></tr>
-        <tr><td>质检工号</td><td>{2}</td></tr>
-        <tr><td>核查日期</td><td>{8}</td></tr>
-        <tr><td>合同号码</td><td>{3}</td></tr>
-        <tr><td>外访日期</td><td>{4}</td></tr>
-        <tr><td>外访时间</td><td>{5}</td></tr>
-        <tr><td>无效外访申诉结果</td><td>{6}</td></tr>
-        <tr><td>此音视频中的错误</td><td>{7}</td></tr>
-        <tr><td>说明</td><td>{9}</td></tr>
-        <tr><td>正确指引提示</td><td>请参考《错误行为正确做法指引V2.0》</td></tr>
-        <tr><td>如果您对此错误有疑问</td><td>如果您对此错误有疑问，您可以联系您的组长协助查看视频。</td></tr>
-        <tr><td>如果您需要申诉</td><td>如果您需要申诉，您需要记录视频中关键行为的时间点，按照申诉邮件模板回复进行申诉。 </td></tr>
-        </table><br/>
-        Late Collection Quality Control Team<br/>
-        后期催收质检团队
+        Your ID number is {1}.
         </body>
         """
-        text_HTML = template.format(data['员工姓名'][i], data['员工工号'][i], data['QC工号'][i], data['合同号码'][i], xlrd.xldate.xldate_as_datetime(
-            data['外访日期'][i], 0).date(), data['外访时间'][i], data['无效外访申诉结果'][i], data['此音视频中的错误'][i], 
-            xlrd.xldate.xldate_as_datetime(data['核查日期'][i],0).date(), data['说明'][i])
+        text_HTML = template.format(data['name'][i], data['id'][i])
 
         # Create the body of the message (a plain-text and an HTML version).
         # text = "Daily report"
@@ -110,10 +92,10 @@ try:
         bar.next()
     bar.finish()
     if(result == {}):
-        print("邮件发送完成！ ",time.strftime("%Y-%m-%d %H:%M:%S"))
+        print("Mails sent！ ",time.strftime("%Y-%m-%d %H:%M:%S"))
     else:
         for r in result:
             print(r)    
     s.quit()
 except:
-    print("邮件发送错误，请检查配置",time.strftime("%Y-%m-%d %H:%M:%S"))
+    print("Something went wrong, check your configuration please.",time.strftime("%Y-%m-%d %H:%M:%S"))
