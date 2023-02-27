@@ -1,2 +1,2 @@
 # pymail
-nothing but send an email.
+Send emails from an excel file template.
